@@ -7,45 +7,26 @@ import time
 import pyperclip
 from tkinter.ttk import Progressbar
 
-openai.api_key = "YOUR_API_KEY"
-
+openai.api_key = "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"
 
 def extract_text(filepath, progress_var):
-    # Open the PDF file in read-binary mode
     with open(filepath, 'rb') as pdf_file:
-        # Create a PDF reader object
         pdf_reader = PyPDF2.PdfReader(pdf_file)
-
-        # Create an empty string to store the text
         text = ''
-
-        # Loop through each page in the PDF file
         for page_num in range(len(pdf_reader.pages)):
-            # Update the progress bar
             progress_var.set(page_num + 1)
             root.update_idletasks()
             root.update()
-
-            # Get the page object
             page_obj = pdf_reader.pages[page_num]
-
-            # Extract the text from the page
             page_text = page_obj.extract_text()
-
-            # Add the text to the string
             text += page_text
-
     return text
-
 
 def generate_summary(text, status_var):
     status_var.set('Generating summary...')
-    words = text.split()
-    max_words = 300
-    prompt = " ".join(words[:max_words])
     response = openai.Completion.create(
-        model="text-davinci-003",
-        prompt=f"Summarize this: {prompt}",
+        engine="gpt-3.5-turbo-instruct",  # Or any other model ID you have access to
+        prompt=f"Summarize this: {text}",
         temperature=0.9,
         max_tokens=256,
         top_p=1.0,
@@ -57,7 +38,6 @@ def generate_summary(text, status_var):
     progress_var.set(100)
     return summary
 
-
 def browse_file():
     filepath = filedialog.askopenfilename()
     if filepath.endswith('.pdf'):
@@ -66,20 +46,16 @@ def browse_file():
     else:
         messagebox.showerror(title='Error', message='Please select a PDF file.')
 
-
 def clear_output():
     output_text.delete(1.0, tk.END)
 
-
 def copy_to_clipboard():
     pyperclip.copy(output_text.get(1.0, tk.END))
-
 
 def save_summary():
     filepath = filedialog.asksaveasfilename(defaultextension='.txt')
     with open(filepath, 'w') as f:
         f.write(output_text.get(1.0, tk.END))
-
 
 def summarize():
     filepath = file_path_var.get()
@@ -92,11 +68,9 @@ def summarize():
     else:
         messagebox.showerror(title='Error', message='Please select a PDF file.')
 
-
 root = tk.Tk()
 root.title('Chatgpt PDF Summarizer ')
 
-# File path label and entry field
 file_path_label = tk.Label(root, text='File path:')
 file_path_label.pack(pady=10)
 
@@ -104,11 +78,9 @@ file_path_var = tk.StringVar()
 file_path_entry = tk.Entry(root, textvariable=file_path_var, width=100)
 file_path_entry.pack()
 
-# Browse button
 browse_button = tk.Button(root, text='Browse', command=browse_file)
 browse_button.pack(pady=10)
 
-# Clear button
 clear_button = tk.Button(root, text='Clear', command=clear_output)
 clear_button.pack(pady=10)
 
